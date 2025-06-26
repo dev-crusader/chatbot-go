@@ -1,14 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"context"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
-	"github.com/openai/openai-go/shared"
+)
+
+var (
+	client = openai.Client{}
+	chatSessions map[string]*[]openai.ChatCompletionMessageParamUnion
+	systemPrompt = openai.SystemMessage(loadSystemPrompt("app/data/system_prompt.txt"))
 )
 
 func main() {
@@ -23,29 +30,74 @@ func main() {
 		baseURL = "https://api.openai.com/v1"
 	}
 
-	client := openai.NewClient(
+	client = openai.NewClient(
 		option.WithAPIKey(apiKey),
 		option.WithBaseURL(baseURL),
 	)
 
-	prompt := `Tell me a joke`
-	ctx := context.Background()
-	chatCompletion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
-		Messages: []openai.ChatCompletionMessageParamUnion{
-			openai.UserMessage(prompt),
-		},
-		Model: shared.ChatModelGPT4,
-	})
+	chatID1 := createUniqueID()
+    _, err := sendMessage(chatID1, "I'm having trouble with my recent order. Can you help me track it?")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+	_, err = sendMessage(chatID1, "It was supposed to arrive yesterday but hasn't. What should I do next?")
+    if err != nil {
+        log.Fatal(err)
+    }
+	printChatHistory(chatSessions[chatID1])
+}
+
+func sendMessage(id string, message string) (string, error) {
+    if _, exists := chatSessions[id]; !exists {
+        return "", fmt.Errorf("chat session Id: %s not found", id)
+    }
+    *chatSessions[id] = append(*chatSessions[id], openai.UserMessage(message))
+    
+    req := openai.ChatCompletionNewParams{
+        Messages: *chatSessions[id],
+        Model: openai.ChatModelGPT4,
+    }
+    
+    response, err := client.Chat.Completions.New(context.TODO(), req)
+    if err != nil {
+        return "", err
+    }
+    if len(response.Choices) == 0 {
+        return "", fmt.Errorf("no response choices were returned by the OpenAI API")
+    }
+    answer := response.Choices[0].Message.Content
+    *chatSessions[id] = append(*chatSessions[id], openai.AssistantMessage(answer))
+    return answer, nil
+}
+
+func printChatHistory(conversation *[]openai.ChatCompletionMessageParamUnion) {
+	for _, message := range *conversation {
+        if message.OfUser != nil {
+            fmt.Println("User: ", message.OfUser.Content.OfString)
+        }
+        
+        if message.OfAssistant != nil {
+            fmt.Println("Assistant: ", message.OfAssistant.Content.OfString)
+        }
+
+		if message.OfSystem != nil {
+			fmt.Println("System: ", message.OfSystem.Content.OfString)
+		}
+    }
+}
+
+func createUniqueID() string {
+	chatId := uuid.New().String()
+	chatSessions[chatId] = &[]openai.ChatCompletionMessageParamUnion{systemPrompt}
+	return chatId
+}
+
+func loadSystemPrompt(filename string) string {
+	content, err := os.ReadFile(filename)
 	if err != nil {
-		log.Fatal("Error: ", err)
+		log.Printf("Error loading system prompt: %v\n", err)
+		return "You are a friendly and efficient customer service attendant eager to assist customers with their inquiries and concerns."
 	}
-
-	if len(chatCompletion.Choices) == 0 {
-		log.Println("No response choices returned by OpenAI API.")
-		return
-	}
-
-	reply := chatCompletion.Choices[0].Message.Content
-
-	log.Printf("Prompt: %s\n Response: %s", prompt, reply) 
+	return string(content)
 }
