@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Customer Service Chat</title>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Welcome to Our Customer Service</h1>
+      <p>How can we help you today?</p>
+    </div>
+
+    <div id="chat-container">
+      <div id="messages"></div>
+      <div class="input-container">
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="message-input"
+            placeholder="Type your message..."
+          />
+        </div>
+        <button onclick="sendMessage()">Send</button>
+        <button id="new-btn" onclick="startNewChat()">New Chat</button>
+      </div>
+    </div>
+
+    <script>
+      const messageContainer = document.getElementById("messages");
+      const messageInput = document.getElementById("message-input");
+
+      document.addEventListener("DOMContentLoaded", startNewChat);
+
+      function startNewChat() {
+        messageContainer.innerHTML = "";
+      }
+
+      function appendMessage(role, content) {
+        const messageDiv = document.createElement("div");
+
+        messageDiv.className = `message ${role}`;
+        messageDiv.textContent = content;
+
+        messageContainer.appendChild(messageDiv);
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+      }
+
+      function sendMessage() {
+        const message = messageInput.value.trim();
+
+        if (!message) return;
+
+        appendMessage("user", message);
+
+        messageInput.value = "";
+        setTimeout(() => {
+          appendMessage("assistant", `You said: ${message}`);
+        }, 500);
+      }
+
+      messageInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+    </script>
+  </body>
+</html>
