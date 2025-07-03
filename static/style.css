@@ -16,6 +16,7 @@ body {
   padding: 10px;
   background-color: #3781cc;
   color: #fff;
+  margin-bottom: 0.5em;
 }
 
 .suggestions {
@@ -41,10 +42,13 @@ body {
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  max-width: 80%;
+  max-width: 800px;
+  width: 100%;
 }
 
 #messages {
+  flex-grow: 1;
+  height: 400px;
   border: 1px solid #ccc;
   border-radius: 5px;
   margin: 10px;
@@ -54,12 +58,28 @@ body {
 }
 
 .message {
+  position: relative;
+  display: inline-block;
   margin: 10px 0;
-  padding: 10px;
-  background-color: rgb(40, 162, 203);
+  padding: 10px 15px;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 10px;
+  word-wrap: break-word;
+  max-width: 70%;
+}
+
+.message.user {
+  align-self: flex-end;
+  float: right;
+  clear: both;
+  background-color: #1ca1e9;
+}
+
+.message.assistant {
+  float: left;
+  clear: both;
+  background-color: #1fcb9d;
 }
 
 .user {
@@ -72,8 +92,9 @@ body {
 
 .input-container {
   display: flex;
-  gap: 5px;
+  gap: 0.5em;
   margin: 10px;
+  width: 80%;
 }
 
 .input-wrapper {
@@ -84,6 +105,7 @@ body {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
+  font-size: 1em;
 }
 
 button {

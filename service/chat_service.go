@@ -22,7 +22,7 @@ func NewChatService() *ChatService {
 	return &ChatService{
 		chatManager: NewChatManager(),
 		openaiClient: initOpenAIClient(),
-		systemPrompt: loadSystemPrompt("app/data/system_prompt.txt"),
+		systemPrompt: loadSystemPrompt("system_prompt.txt"),
 	}
 }
 
@@ -71,7 +71,7 @@ func(cs *ChatService) ProcessMessage(userID, chatID, message string) (string, er
 		context.TODO(),
 		openai.ChatCompletionNewParams{
 			Messages: conversation,
-			Model: openai.ChatModelGPT4,
+			Model: openai.ChatModelGPT3_5Turbo,
 			Temperature: openai.Float(0.7),
 			MaxCompletionTokens: openai.Int(500),
 		},

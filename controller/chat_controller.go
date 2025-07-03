@@ -50,7 +50,7 @@ func(cc *ChatController) SendMessage(ctx *fiber.Ctx) error {
 
 	var data struct {
 		ChatID		string `json:"chat_id"`
-		UserMessage string `json:"message"`
+		UserMessage string `json:"user_message"`
 	}
 
 	if err := ctx.BodyParser(&data); err != nil {
