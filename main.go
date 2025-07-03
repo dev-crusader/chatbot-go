@@ -16,6 +16,8 @@ func main() {
 		Views: engine,
 	})
 
+	app.Static("static/style.css", "./static/style.css")
+
 	store := session.New()
 
 	chatController := controller.NewController(store)
